@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Чат</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background: #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial;
+}
+
+.start-btn {
+    padding: 16px 40px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(90deg,#38bdf8,#818cf8);
+    color: white;
+    cursor: pointer;
+}
+
+.chat {
+    display: none;
+    flex-direction: column;
+    width: 360px;
+    height: 520px;
+    background: #1e293b;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.top {
+    background: #0f172a;
+    padding: 10px;
+    text-align: center;
+    color: white;
+}
+
+.messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    color: white;
+}
+
+.msg {
+    margin-bottom: 10px;
+}
+
+.me {
+    text-align: right;
+    color: #38bdf8;
+}
+
+.input {
+    display: flex;
+}
+
+.input input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+}
+
+.input button {
+    padding: 10px;
+    border: none;
+    background: #38bdf8;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<button class="start-btn" onclick="start()">Начать</button>
+
+<div class="chat" id="chat">
+    <div class="top" id="username"></div>
+    <div class="messages" id="messages"></div>
+
+    <div class="input">
+        <input id="input" placeholder="Сообщение...">
+        <button onclick="sendMessage()">➤</button>
+    </div>
+</div>
+
+<script>
+let socket = io();
+let username = "";
+
+function start() {
+    username = prompt("Введите имя:");
+    if (!username) username = "Аноним";
+
+    document.querySelector(".start-btn").style.display = "none";
+    document.getElementById("chat").style.display = "flex";
+    document.getElementById("username").textContent = username;
+}
+
+function sendMessage() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+
+    socket.send({user: username, text: text});
+    input.value = "";
+}
+
+socket.on("message", function(data) {
+    let div = document.createElement("div");
+    div.className = "msg";
+
+    if (data.user === username) {
+        div.classList.add("me");
+    }
+
+    div.textContent = data.user + ": " + data.text;
+    document.getElementById("messages").appendChild(div);
+
+    let box = document.getElementById("messages");
+    box.scrollTop = box.scrollHeight;
+});
+</script>
+
+</body>
+</html>
